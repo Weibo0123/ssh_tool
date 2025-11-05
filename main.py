@@ -21,7 +21,8 @@ def get_target_machine():
                 sys.exit("Invalid Target")
             select_name = list(target.keys())[select_number - 1]
             t = target[select_name]
-            return select_name, t["ip"], t["port"], t["user"], t["passwd"]
+            passwd = getpass.getpass()
+            return select_name, t["ip"], t["port"], t["user"], passwd
         else:
             sys.exit("You don't have any saved targets!")
     elif choice == "n" or choice == "no":
@@ -33,12 +34,13 @@ def get_target_machine():
             sys.exit("Invalid Port")
         target_user = input("Username: ").strip()
         passwd = getpass.getpass()
+        save_target_machine(name, target_ip, target_port, target_user)
         return target_name, target_ip, target_port, target_user, passwd
     else:
         sys.exit("Invalid Input")
     
 
-def save_target_machine(name, ip, port, user, passwd):
+def save_target_machine(name, ip, port, user):
     target = load_target_machine() or {}
 
 
@@ -46,7 +48,6 @@ def save_target_machine(name, ip, port, user, passwd):
         "ip": ip,
         "port": port,
         "user": user,
-        "passwd": passwd
         }
     
     with open(TARGET_SAVE, "w") as f:
@@ -62,7 +63,7 @@ def load_target_machine():
 
 def main():
     name, ip, port, user, passwd = get_target_machine()
-    save_target_machine(name, ip, port, user, passwd)
+    
     cmd = input("Command: ")
 
     client  = paramiko.SSHClient()
