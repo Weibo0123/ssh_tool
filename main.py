@@ -7,7 +7,7 @@ import os
 TARGET_SAVE = "target_save.json"
 def get_target_machine():
     choice = input("Do you want to use your save targets(y/n): ").lower()
-    if choice == "y" or choice == "yes":
+    if choice in ("y", "yes", "ye"):
         target = load_target_machine()
         if target:
             for i, name in enumerate(target.keys(), start=1):
@@ -25,7 +25,7 @@ def get_target_machine():
             return select_name, t["ip"], t["port"], t["user"], passwd
         else:
             sys.exit("You don't have any saved targets!")
-    elif choice == "n" or choice == "no":
+    elif choice in ("n", "no"):
         target_name = input("Target Name: ").strip()
         target_ip = input("Target IP: ").strip()
         try:
@@ -34,7 +34,7 @@ def get_target_machine():
             sys.exit("Invalid Port")
         target_user = input("Username: ").strip()
         passwd = getpass.getpass()
-        save_target_machine(name, target_ip, target_port, target_user)
+        save_target_machine(target_name, target_ip, target_port, target_user)
         return target_name, target_ip, target_port, target_user, passwd
     else:
         sys.exit("Invalid Input")
@@ -42,7 +42,6 @@ def get_target_machine():
 
 def save_target_machine(name, ip, port, user):
     target = load_target_machine() or {}
-
 
     target[name] = {
         "ip": ip,
@@ -64,19 +63,21 @@ def load_target_machine():
 def main():
     name, ip, port, user, passwd = get_target_machine()
     
-    cmd = input("Command: ")
-
     client  = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     try:
         client.connect(ip, port=port, username=user, password=passwd)
-        _, stdout, stderr = client.exec_command(cmd)
-        output = stdout.readlines() + stderr.readlines()
-        if output:
-            print("=== Output ===")
-            for line in output:
-                print(line.strip())
+        while True:
+            cmd = input("Command: ").strip()
+            if cmd in ("exit", "quit"):
+                break
+            _, stdout, stderr = client.exec_command(cmd)
+            output = stdout.readlines() + stderr.readlines()
+            if output:
+                print("=== Output ===")
+                for line in output:
+                    print(line.strip())
     except Exception as e:
         sys.exit(f"Connection Failed: {e}")
 
