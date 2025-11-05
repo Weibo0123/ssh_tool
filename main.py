@@ -10,18 +10,18 @@ def get_target_machine():
     if choice == "y" or choice == "yes":
         target = load_target_machine()
         if target:
-            for i, name in enumerate(target.keys, start=1):
+            for i, name in enumerate(target.keys(), start=1):
                 print(f"{i}: {name}")
             select = input("Which one do you want to choose?")
             try:
                 select_number = int(select)
-                if 1 <= select <= len(target):
+                if not (1 <= select_number <= len(target)):
                     raise ValueError 
             except ValueError:
                 sys.exit("Invalid Target")
             select_name = list(target.keys())[select_number - 1]
             t = target[select_name]
-            return select_name, t.ip, t.port, t.user, t.passwd
+            return select_name, t["ip"], t["port"], t["user"], t["passwd"]
         else:
             sys.exit("You don't have any saved targets!")
     elif choice == "n" or choice == "no":
@@ -39,7 +39,7 @@ def get_target_machine():
     
 
 def save_target_machine(name, ip, port, user, passwd):
-    target = {}
+    target = load_target_machine() or {}
 
 
     target[name] = {
