@@ -3,8 +3,16 @@ import getpass
 import sys
 import json
 import os
+import readline
 
-TARGET_SAVE = "target_save.json"
+HISTORY_SAVE_FILE = "history_save.txt"
+TARGET_SAVE_FILE = "target_save.json"
+
+def shell_simulation():
+    readline.parse_and_bind("tab: complete")
+    if os.path.exists(HISTORY_SAVE_FILE):
+        readline.read_history_file(HISTORY_SAVE_FILE)
+    
 def get_target_machine():
     choice = input("Do you want to use your save targets(y/n): ").lower()
     if choice in ("y", "yes", "ye"):
@@ -49,18 +57,19 @@ def save_target_machine(name, ip, port, user):
         "user": user,
         }
     
-    with open(TARGET_SAVE, "w") as f:
+    with open(TARGET_SAVE_FILE, "w") as f:
         json.dump(target, f, indent=4)
-    print(f"Save Target Information to {TARGET_SAVE}")
+    print(f"Save Target Information to {TARGET_SAVE_FILE}")
 
 def load_target_machine():
-    if os.path.exists(TARGET_SAVE):
-        with open(TARGET_SAVE) as f:
+    if os.path.exists(TARGET_SAVE_FILE):
+        with open(TARGET_SAVE_FILE) as f:
             return json.load(f)
     return None
 
 
 def main():
+    shell_simulation()
     name, ip, port, user, passwd = get_target_machine()
     
     client  = paramiko.SSHClient()
@@ -72,12 +81,17 @@ def main():
             cmd = input("Command: ").strip()
             if cmd in ("exit", "quit"):
                 break
+            if not cmd:
+                continue
             _, stdout, stderr = client.exec_command(cmd)
             output = stdout.readlines() + stderr.readlines()
             if output:
-                print("=== Output ===")
+                print("\n=== Output ===\n")
                 for line in output:
                     print(line.strip())
+                    print("")
+    except KeyboardInterrupt:
+        sys.exit("Disconnected by user")
     except Exception as e:
         sys.exit(f"Connection Failed: {e}")
 
