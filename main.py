@@ -4,6 +4,7 @@ import sys
 import json
 import os
 import readline
+import time
 
 HISTORY_SAVE_FILE = "history_save.txt"
 TARGET_SAVE_FILE = "target_save.json"
@@ -20,7 +21,7 @@ def get_target_machine():
         if target:
             for i, name in enumerate(target.keys(), start=1):
                 print(f"{i}: {name}")
-            select = input("Which one do you want to choose?")
+            select = input("Which one do you want to choose?\n")
             try:
                 select_number = int(select)
                 if not (1 <= select_number <= len(target)):
@@ -77,19 +78,19 @@ def main():
 
     try:
         client.connect(ip, port=port, username=user, password=passwd)
+        channel = client.invoke_shell()
+        print('Connected to the target. Type "exit" to disconnect')
         while True:
-            cmd = input("Command: ").strip()
+            cmd = input("$ ")
             if cmd in ("exit", "quit"):
+                channel.send("exit\n")
                 break
-            if not cmd:
-                continue
-            _, stdout, stderr = client.exec_command(cmd)
-            output = stdout.readlines() + stderr.readlines()
-            if output:
-                print("\n=== Output ===\n")
-                for line in output:
-                    print(line.strip())
-                    print("")
+            
+            channel.send(cmd + "\n")
+            time.sleep(0.5)
+
+            while channel.recv_ready():
+                print(channel.recv(4096).decode(), end="")
     except KeyboardInterrupt:
         sys.exit("Disconnected by user")
     except Exception as e:
