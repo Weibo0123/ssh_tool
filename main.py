@@ -1,3 +1,13 @@
+"""
+Remote Shell
+
+Descreption:
+    This program allows users to securely connect to remote machines with SSH
+    with a fully functional pseudo-terminal(PTY). It supports interactive
+    command execution, live output, proper handling of Ctrl+C, automatic
+    terminal restoration on exit, and it can also save target machines
+    for quick reconnection.
+"""
 import paramiko
 import getpass
 import sys
@@ -9,6 +19,7 @@ import termios
 
 TARGET_SAVE_FILE = "target_save.json"
 
+# ===================================== Target Machine Handling ======================================
 def get_target_machine():
     choice = input("Do you want to use your save targets(y/n): ").lower()
     if choice in ("y", "yes", "ye"):
@@ -63,9 +74,11 @@ def load_target_machine():
             return json.load(f)
     return None
 
+# ===================================== Target Machine Handling ======================================
 
-def main():
-    name, ip, port, user, passwd = get_target_machine()
+
+# ====================================== SSH Sessions Handling =======================================
+def ssh_session(ip, port, user, passwd):
     
     client  = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -102,6 +115,14 @@ def main():
     finally:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_tty)
         client.close()
+# ====================================== SSH Sessions Handling =======================================
+
+
+# ============================================== Main ================================================
+def main():
+    name, ip, port, user, passwd = get_target_machine()
+    ssh_session(ip, port, user, passwd)
 
 if __name__ == "__main__":
     main()
+# ============================================== Main ================================================
