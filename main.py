@@ -5,6 +5,8 @@ import json
 import os
 import readline
 import select
+import tty
+import termios
 
 HISTORY_SAVE_FILE = "history_save.txt"
 TARGET_SAVE_FILE = "target_save.json"
@@ -76,6 +78,7 @@ def main():
     client  = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+    old_tty = termios.tcgetattr(sys.stdin)
     try:
         client.connect(ip, port=port, username=user, password=passwd)
         channel = client.get_transport().open_session()
@@ -83,7 +86,9 @@ def main():
         channel.invoke_shell()
 
         print('Connected to the target. Type "exit" to disconnect')
-            
+        
+        tty.setraw(sys.stdin.fileno())
+
         while True:
             rlist, _, _ = select.select([channel, sys.stdin], [], [])
             if channel in rlist:
@@ -93,7 +98,7 @@ def main():
                 print(data, end="")
 
             if sys.stdin in rlist:
-                cmd = sys.stdin.readline()
+                cmd = os.read(sys.stdin.fileno(), 1024)
                 if not cmd:
                     print("\nDisconnected")
                     break
@@ -103,6 +108,7 @@ def main():
     except Exception as e:
         sys.exit(f"Connection Failed: {e}")
 
+    termios.tcgetattr(sys.stdin, termios.TCSADRAIN, old_tty)
     client.close()
 
 if __name__ == "__main__":
