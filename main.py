@@ -80,24 +80,21 @@ def main():
         client.connect(ip, port=port, username=user, password=passwd)
         channel = client.invoke_shell()
         print('Connected to the target. Type "exit" to disconnect')
+            
         while True:
-            cmd = input("$ ")
-            if cmd in ("exit", "quit"):
-                channel.send("exit\n")
-                break
-            
-            channel.send(cmd + "\n")
-            
-            while True:
-                rlist, _, _ = select.select([channel], [], [])
-                if channel in rlist:
-                    if channel.recv_ready():
-                        data = channel.recv(4096).decode()
-                        if not data:
-                            break
-                        print(data, end="")
-                if channel.exit_status_ready():
-                    break       
+            rlist, _, _ = select.select([channel, sys.stdin], [], [])
+            if channel in rlist:
+                data = channel.recv(4096).decode()    
+                if not data:
+                    break
+                print(data, end="")
+
+            if sys.stdin in rlist:
+                cmd = sys.stdin.readline()
+                if not cmd:
+                    print("\nDisconnected")
+                    break
+                channel.send(cmd)
     except KeyboardInterrupt:
         channel.send("\x03")
     except Exception as e:
