@@ -92,11 +92,11 @@ def main():
         while True:
             rlist, _, _ = select.select([channel, sys.stdin], [], [])
             if channel in rlist:
-                data = channel.recv(4096).decode()    
+                data = channel.recv(4096)   
                 if not data:
                     break
-                print(data, end="")
-
+                sys.stdout.write(data.decode(errors="ignore"))
+                sys.stdout.flush()
             if sys.stdin in rlist:
                 cmd = os.read(sys.stdin.fileno(), 1024)
                 if not cmd:
@@ -107,9 +107,9 @@ def main():
         channel.send("\x03")
     except Exception as e:
         sys.exit(f"Connection Failed: {e}")
-
-    termios.tcgetattr(sys.stdin, termios.TCSADRAIN, old_tty)
-    client.close()
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_tty)
+        client.close()
 
 if __name__ == "__main__":
     main()
