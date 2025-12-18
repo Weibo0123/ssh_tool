@@ -21,14 +21,14 @@ def get_target_machine():
         if target:
             for i, name in enumerate(target.keys(), start=1):
                 print(f"{i}: {name}")
-            select = input("Which one do you want to choose?\n")
+            machine = input("Which one do you want to choose?\n")
             try:
-                select_number = int(select)
-                if not (1 <= select_number <= len(target)):
+                machine_number = int(machine)
+                if not (1 <= machine_number <= len(target)):
                     raise ValueError 
             except ValueError:
                 sys.exit("Invalid Target")
-            select_name = list(target.keys())[select_number - 1]
+            select_name = list(target.keys())[machine_number - 1]
             t = target[select_name]
             passwd = getpass.getpass()
             return select_name, t["ip"], t["port"], t["user"], passwd
@@ -96,6 +96,8 @@ def main():
                         if not data:
                             break
                         print(data, end="")
+                if channel.exit_status_ready():
+                    break       
     except KeyboardInterrupt:
         channel.send("\x03")
     except Exception as e:
