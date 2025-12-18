@@ -78,7 +78,10 @@ def main():
 
     try:
         client.connect(ip, port=port, username=user, password=passwd)
-        channel = client.invoke_shell()
+        channel = client.get_transport().open_session()
+        channel.get_pty(term="xterm", width=80, height=24)
+        channel.invoke_shell()
+
         print('Connected to the target. Type "exit" to disconnect')
             
         while True:
