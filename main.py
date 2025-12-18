@@ -4,7 +4,7 @@ import sys
 import json
 import os
 import readline
-import time
+import select
 
 HISTORY_SAVE_FILE = "history_save.txt"
 TARGET_SAVE_FILE = "target_save.json"
@@ -87,12 +87,17 @@ def main():
                 break
             
             channel.send(cmd + "\n")
-            time.sleep(0.5)
-
-            while channel.recv_ready():
-                print(channel.recv(4096).decode(), end="")
+            
+            while True:
+                rlist, _, _ = select.select([channel], [], [])
+                if channel in rlist:
+                    if channel.recv_ready():
+                        data = channel.recv(4096).decode()
+                        if not data:
+                            break
+                        print(data, end="")
     except KeyboardInterrupt:
-        sys.exit("Disconnected by user")
+        channel.send("\x03")
     except Exception as e:
         sys.exit(f"Connection Failed: {e}")
 
