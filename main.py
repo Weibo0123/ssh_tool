@@ -3,19 +3,12 @@ import getpass
 import sys
 import json
 import os
-import readline
 import select
 import tty
 import termios
 
-HISTORY_SAVE_FILE = "history_save.txt"
 TARGET_SAVE_FILE = "target_save.json"
 
-def shell_simulation():
-    readline.parse_and_bind("tab: complete")
-    if os.path.exists(HISTORY_SAVE_FILE):
-        readline.read_history_file(HISTORY_SAVE_FILE)
-    
 def get_target_machine():
     choice = input("Do you want to use your save targets(y/n): ").lower()
     if choice in ("y", "yes", "ye"):
@@ -72,7 +65,6 @@ def load_target_machine():
 
 
 def main():
-    shell_simulation()
     name, ip, port, user, passwd = get_target_machine()
     
     client  = paramiko.SSHClient()
