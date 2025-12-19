@@ -32,7 +32,7 @@ def check_target(name, ip, port, user):
     """
 
     # Check if the name is between 1 - 14 characters.
-    if 0 < len(name) <= 14:
+    if not (0 < len(name) <= 14):
         raise ValueError("Target name must be 1–14 characters")
 
     # Check if the ip address is in valid format.
@@ -119,8 +119,7 @@ def save_target_machine(name, ip, port, user):
     if name in target:
         confirm = input(f"target {name} is already existed. Do you want to overwrite?\n").lower()
         if confirm not in ("y", "yes"):
-            print("Saving cancelled.")
-            return
+            sys.exit("Saving cancelled.")
     target[name] = {
         "ip": ip,
         "port": port,
@@ -142,7 +141,6 @@ def load_target_machine():
             return json.load(f)
     else:
         sys.exit("The saving file doesn't exist")
-        return None
 
 # ===================================== Target Machine Handling ======================================
 
