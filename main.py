@@ -136,11 +136,18 @@ def load_target_machine():
     """
 
     # Check if the target saving file exisrs
-    if os.path.exists(TARGET_SAVE_FILE):
-        with open(TARGET_SAVE_FILE) as f:
-            return json.load(f)
-    else:
+    if not os.path.exists(TARGET_SAVE_FILE):
         sys.exit("The saving file doesn't exist")
+        
+
+    # If there's nothing in the saving file, pass.
+    try:
+        with open(TARGET_SAVE_FILE) as f:
+            data = json.load(f)
+            if isinstance(data, dict):
+                return data
+    except json.JSONDecodeError:
+        pass 
 
 # ===================================== Target Machine Handling ======================================
 
